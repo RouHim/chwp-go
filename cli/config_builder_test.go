@@ -10,7 +10,7 @@ func TestRepeat(t *testing.T) {
 		Keywords: []string{"autumn"},
 		Span:     true,
 	}
-	got := Parse([]string{"autumn", "Span"})
+	got := Parse([]string{"autumn", "span"})
 
 	if !reflect.DeepEqual(expected.Keywords, got.Keywords) {
 		t.Errorf("expected Keywords %s but got %s", expected.Keywords, got.Keywords)

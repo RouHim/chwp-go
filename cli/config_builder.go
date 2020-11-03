@@ -1,7 +1,5 @@
 package cli
 
-import "sort"
-
 //Struct that represents the parsed configuration
 type Configuration struct {
 	Keywords []string
@@ -10,15 +8,26 @@ type Configuration struct {
 
 //Parses the passed os arguments to cmd parameter
 func Parse(args []string) Configuration {
+	spans := contains(args, "span")
+	args = remove(args, "span")
+
+	if len(args) <= 0 {
+		args = append(args, "wallpaper")
+	}
+
 	return Configuration{
-		Keywords: remove(args, "span"),
-		Span:     contains(args, "span"),
+		Keywords: args,
+		Span:     spans,
 	}
 }
 
-func contains(s []string, searchterm string) bool {
-	i := sort.SearchStrings(s, searchterm)
-	return i < len(s) && s[i] == searchterm
+func contains(slice []string, term string) bool {
+	for _, item := range slice {
+		if item == term {
+			return true
+		}
+	}
+	return false
 }
 
 func remove(s []string, r string) []string {

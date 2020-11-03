@@ -7,34 +7,54 @@ import (
 	"github.com/buger/jsonparser"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
-var baseUrl = "https://pixabay.com/api/?key=15495421-a5108e860086b11eddaea0efa&per_page=3"
-
+var baseUrl = "https://pixabay.com/api/?key=15495421-a5108e860086b11eddaea0efa&per_page=50"
 // var baseUrl = "https://pixabay.com/api/?key=15495421-a5108e860086b11eddaea0efa&q=space&min_width=5760&min_height=1080"
 
 // loads a random wallpaper url for given keywords
 func GetImageUrl(parameter cli.Configuration, displayInfo display.Information) string {
-	requestUrl := baseUrl
-	requestUrl += "&q=" + parameter.Keywords[0]
-	requestUrl += "&min_width=" + getWidth(displayInfo.TotalResolution)
-	requestUrl += "&min_height=" + getHeight(displayInfo.TotalResolution)
+	requestUrl := buildRequestUrl(parameter, displayInfo)
 
-	fmt.Println(displayInfo.TotalResolution)
 	fmt.Println(requestUrl)
 
 	jsonData := getStringFromUrl(requestUrl)
 
-	imageUrl, _, _, err := jsonparser.Get(jsonData, "hits", "[0]", "largeImageURL")
-	//imageUrl, _, _, err := jsonparser.Get(jsonData, "hits", "[0]", "imageURL")
+	var images []string
+	jsonparser.ArrayEach(jsonData, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		imageUrl, err := jsonparser.GetString(value, "imageURL")
 
-	if err != nil {
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
+		images = append(images, imageUrl)
+	}, "hits")
+
+	rand.Seed(time.Now().UnixNano())
+	randomIndex := rand.Intn(len(images) - 1)
+	return images[randomIndex]
+}
+
+func buildRequestUrl(parameter cli.Configuration, displayInfo display.Information) string {
+	targetWidth := getWidth(displayInfo.MaxSingleResolution)
+	if parameter.Span {
+		targetWidth = getWidth(displayInfo.TotalResolution)
 	}
 
-	return string(imageUrl)
+	targetHeight := getHeight(displayInfo.MaxSingleResolution)
+	if parameter.Span {
+		targetHeight = getHeight(displayInfo.TotalResolution)
+	}
+
+	requestUrl := baseUrl
+	requestUrl += "&q=" + parameter.Keywords[0]
+	requestUrl += "&min_width=" + targetWidth
+	requestUrl += "&min_height=" + targetHeight
+	return requestUrl
 }
 
 func getHeight(resolution string) string {

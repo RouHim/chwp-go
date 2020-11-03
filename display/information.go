@@ -1,7 +1,6 @@
 package display
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -102,8 +101,6 @@ func isDisplayVarSet() bool {
 }
 
 func executeCommand(cmd string) string {
-	fmt.Printf("executing: %s\n", cmd)
-
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		log.Fatal(err)
